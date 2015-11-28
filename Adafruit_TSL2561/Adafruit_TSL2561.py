@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import atexit
 import time
 import warnings
 from Adafruit_I2C import Adafruit_I2C
@@ -151,6 +152,12 @@ class TSL2561(object):
     _gain = 1
     _integrationTime = _integrationTime(402)
 
+    @classmethod
+    def reset_sensor(cls, address):
+        Adafruit_I2C(address).write8(
+            TSL2561._REGISTER['CONTROL'] | TSL2561._REG_MOD['COMMAND'],
+            TSL2561._CONTROL['OFF'])
+    
     def __init__(self, address=ADDR_FLOAT, mode=MODE_CONTINUOUS, gain=_gain, integrationTime=_integrationTime.key, package='T', debug=False):
         if mode not in self._MODES:
             raise ValueError('Incorrect value passed as operating mode.')
@@ -166,6 +173,7 @@ class TSL2561(object):
         self.mode = mode
         if self.mode == TSL2561.MODE_CONTINUOUS:
             self._poweron()
+            atexit.register(TSL2561.reset_sensor, address)
 
         self.gain = gain
         self.integrationTime = integrationTime
