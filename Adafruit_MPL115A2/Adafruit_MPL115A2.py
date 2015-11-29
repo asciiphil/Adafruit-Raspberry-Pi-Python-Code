@@ -49,7 +49,7 @@ class MPL115A2:
 
 
     def __init__(self, address=0x60, debug=False):
-        self.i2c = Adafruit_I2C(address)
+        self.i2c = Adafruit_I2C(address, debug=debug)
 
         # Read coefficients
         self.a0  = self.__REGISTER_A0.read(self.i2c)
