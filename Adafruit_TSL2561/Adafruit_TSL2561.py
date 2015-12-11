@@ -170,7 +170,8 @@ class TSL2561(object):
         # of 0x0A (0b00001010) for my TSL2561T when the datasheet says I should
         # get 0x50 (0b01010000).  The Adafruit Arduino code also checks for
         # 0x0A, so the datasheet is probably just wrong.
-        # Additionally, the even though the datasheet says the ID register never
+        #
+        # Additionally, even though the datasheet says the ID register never
         # changes, it only appears to return the product identifier if the
         # sensor is powered off.  If the sensor is on, the register returns
         # 0x00.  Consequently, if we get a 0x00 result (which is also what a
@@ -263,7 +264,7 @@ class TSL2561(object):
         # equivalents for purposes of doing the calculation.  That's what the
         # `chscale` variable accomplishes.  The integration time scaling is
         # precomputed.  The gain scaling is simply based on the current gain
-        # relative the the 16x reference.
+        # relative to the 16x reference.
         chscale = self._integrationTime.scale * (16.0 / self.gain)
         schan0 = chan0 * chscale
         schan1 = chan1 * chscale
