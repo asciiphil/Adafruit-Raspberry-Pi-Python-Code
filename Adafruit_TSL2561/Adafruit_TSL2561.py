@@ -18,10 +18,12 @@ def _sleepms(ms):
 class SensorSaturatedException(Exception):
     """Used when the sensor is saturated and cannot provide accurate readings."""
     def __init__(self, channel):
+        self.channel = channel
         if type(channel) == int:
-            self.msg('Channel {0} is saturated.'.format(channel))
+            message = 'Channel {0} is saturated.'.format(channel)
         else:
-            self.msg('Both channels are saturated.')
+            message = 'Both channels are saturated.'
+        super(SensorSaturatedException, self).__init__(message)
 
 
 class _integrationTime:
