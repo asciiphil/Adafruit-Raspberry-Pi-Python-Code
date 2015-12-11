@@ -70,10 +70,6 @@ class TSL2561(object):
     * integrationTime - The integration time in milliseconds for a sensor
       reading.  See the `integrationTime` class property for more information
       and acceptable values.  Defaults to 402.
-    * package - A string indicating which TSL2561 package is in use.  Takes one
-      of two values:
-      * 'T' - TMB package.  This is the default.
-      * 'CS' - Chipscale package.
     * debug - Controls whether additional debugging information is printed as
       the class performs its functions.  Defaults to False.
 
@@ -158,7 +154,7 @@ class TSL2561(object):
             TSL2561._REGISTER['CONTROL'] | TSL2561._REG_MOD['COMMAND'],
             TSL2561._CONTROL['OFF'])
     
-    def __init__(self, address=ADDR_FLOAT, mode=MODE_CONTINUOUS, gain=_gain, integrationTime=_integrationTime.key, package='T', debug=False):
+    def __init__(self, address=ADDR_FLOAT, mode=MODE_CONTINUOUS, gain=_gain, integrationTime=_integrationTime.key, debug=False):
         if mode not in self._MODES:
             raise ValueError('Incorrect value passed as operating mode.')
         if not address in [TSL2561.ADDR_LOW, TSL2561.ADDR_FLOAT, TSL2561.ADDR_HIGH]:
@@ -166,9 +162,36 @@ class TSL2561(object):
             warnings.warn(addr_msg)
         self.debug = debug
         self._i2c = Adafruit_I2C(address, debug=debug)
+        # The datasheet says that the ID register has a product identifier in
+        # bits 4-7 and a revision number in bits 0-3.  Testing on my (PMG)
+        # sensor indicates that the bits are completely reversed.  I get a value
+        # of 0x0A (0b00001010) for my TSL2561T when the datasheet says I should
+        # get 0x50 (0b01010000).  The Adafruit Arduino code also checks for
+        # 0x0A, so the datasheet is probably just wrong.
+        # Additionally, the even though the datasheet says the ID register never
+        # changes, it only appears to return the product identifier if the
+        # sensor is powered off.  If the sensor is on, the register returns
+        # 0x00.  Consequently, if we get a 0x00 result (which is also what a
+        # TSL2560CS returns when it's off), we try turning the sensor off and
+        # reading the value again, just to check what we're talking to.
         id = self._i2c.readU8(TSL2561._REGISTER['ID'])
-        if id < 0 or not id & 0x0A:
+        if id == 0:
+            self._poweroff()
+            id = self._i2c.readU8(TSL2561._REGISTER['ID'])
+        if id < 0:
             raise EnvironmentError, 'Device at 0x{0:x} does not appear to be a TSL2561.'.format(address)
+        elif id & 0x0F in (0x0A, 0x02):
+            # 0x0A - TSL2561T
+            # 0x02 - TSL2560T
+            package = 'T'
+        elif id & 0x0F in (0x08, 0x00):
+            # 0x08 - TSL2561CS
+            # 0x00 - TSL2560CS
+            package = 'CS'
+        else:
+            raise EnvironmentError, 'Device at 0x{0:x} does not appear to be a TSL2561.'.format(address)
+        if self.debug:
+            print 'Device uses "{0}" packaging.'.format(package)
 
         self.mode = mode
         if self.mode == TSL2561.MODE_CONTINUOUS:
