@@ -249,9 +249,22 @@ class TSL2561(object):
         """
         (chan0, chan1) = self._getData()
 
-        chscale = self._integrationTime.scale * self.gain
-        schan0 = chan0 / chscale
-        schan1 = chan1 / chscale
+        # The channel readings are pretty raw numbers.  Given a steady light
+        # source, a (hypothetical) 10ms integration time would give a raw
+        # reading that was ten times higher than a 1ms integration time.
+        # Similarly, if the sensor is operating at 16x gain, the raw readings
+        # will by 16 times higher than a 1x gain.
+        #
+        # The calculations in the datasheet are based on a 402ms integration
+        # time and a 16x gain.  If those aren't the parameters that were used
+        # for this reading, we need to scale the raw numbers to their 402ms/16x
+        # equivalents for purposes of doing the calculation.  That's what the
+        # `chscale` variable accomplishes.  The integration time scaling is
+        # precomputed.  The gain scaling is simply based on the current gain
+        # relative the the 16x reference.
+        chscale = self._integrationTime.scale * (16.0 / self.gain)
+        schan0 = chan0 * chscale
+        schan1 = chan1 * chscale
 
         if schan0 != 0:
             ratio = schan1 / schan0
