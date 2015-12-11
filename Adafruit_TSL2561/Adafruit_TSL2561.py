@@ -300,8 +300,8 @@ class TSL2561(object):
         if self.mode == TSL2561.MODE_SINGLE:
             self._poweron()
             _sleepms(self._integrationTime.time)
-        chan0 = self._i2c.reverseByteOrder(self._i2c.readU16(TSL2561._REGISTER['CHAN0'] | TSL2561._REG_MOD['COMMAND'] | TSL2561._REG_MOD['WORD']))
-        chan1 = self._i2c.reverseByteOrder(self._i2c.readU16(TSL2561._REGISTER['CHAN1'] | TSL2561._REG_MOD['COMMAND'] | TSL2561._REG_MOD['WORD']))
+        chan0 = self._i2c.readU16(TSL2561._REGISTER['CHAN0'] | TSL2561._REG_MOD['COMMAND'] | TSL2561._REG_MOD['WORD'])
+        chan1 = self._i2c.readU16(TSL2561._REGISTER['CHAN1'] | TSL2561._REG_MOD['COMMAND'] | TSL2561._REG_MOD['WORD'])
         if self.mode == TSL2561.MODE_SINGLE:
             self._poweroff()
 
