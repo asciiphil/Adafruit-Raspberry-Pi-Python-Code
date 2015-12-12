@@ -29,8 +29,8 @@ class SensorSaturatedException(Exception):
 class _integrationTime:
     _DATA = {
         #     time   bits     scale       max
-        13:  [ 13.7, 0x00,  11.0/322.0,  5047],
-        101: [101,   0x01,  81.0/322.0, 37177],
+        13:  [ 13.7, 0x00, 322.0/ 11.0,  5047],
+        101: [101,   0x01, 322.0/ 81.0, 37177],
         402: [402,   0x02, 322.0/322.0, 65535],
     }
     def __init__(self, time):
